@@ -6,15 +6,27 @@ modules:
         function: resolver
       render: native
       title: repo_admin
+
   function:
     - key: resolver
       handler: index.handler
+
 resources:
   - key: main
     path: src/frontend/index.jsx
+
 app:
   runtime:
     name: nodejs22.x
     memoryMB: 256
     architecture: arm64
   id: ari:cloud:ecosystem::app/232f3307-8573-4794-a289-a10d31d4b898
+
+permissions:
+  scopes:
+    - read:issue:jira
+    - write:issue:jira
+  external:
+    fetch:
+      backend:
+        - api.github.com
