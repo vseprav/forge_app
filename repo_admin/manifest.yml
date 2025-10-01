@@ -24,6 +24,7 @@ app:
 
 permissions:
   scopes:
+    - storage:app
     - read:issue:jira
     - write:issue:jira
   external:
