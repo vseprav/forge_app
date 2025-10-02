@@ -45,6 +45,14 @@ export const getGithubToken = async (accountId) => {
   return storage.getSecret(tokenKey(accountId));
 }
 
+const getGithubHeaders = (token) => {
+  return {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  }
+}
+
 export const getGithubRepos = async (
   token,
   page = 1,
@@ -55,12 +63,14 @@ export const getGithubRepos = async (
   const res = await fetch(
     `https://api.github.com/user/repos?per_page=${perPage}&page=${page}&sort=${sort}&direction=${direction}`,
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28'
-      }
+      headers: getGithubHeaders(token)
     });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub API failed: ${res.status} ${text}`);
+  }
+
   const repos = await res.json();
   return repos.map((r) => ({
     id: r.id,
@@ -82,5 +92,32 @@ export const getGithubRepos = async (
       admin: r.permissions?.admin,
       push: r.permissions?.push,
     },
+  }));
+}
+
+export const getRepoPulls = async (token, owner, repo, state) => {
+  if (!token) throw new Error('GitHub token missing');
+
+  const res = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls?state=${state}`,
+    {
+      headers: getGithubHeaders(token)
+    });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub API failed: ${res.status} ${text}`);
+  }
+  const data = await res.json();
+
+  return data.map(pr => ({
+    id: pr.id,
+    number: pr.number,
+    title: pr.title,
+    html_url: pr.html_url,
+    user: pr.user?.login,
+    created_at: pr.created_at,
+    updated_at: pr.updated_at,
+    branch: pr.head?.ref,
   }));
 }

@@ -1,5 +1,14 @@
 import Resolver from '@forge/resolver';
-import {clearToken, getAuthStatus, getGithubRepos, getGithubToken, saveToken, validateToken} from "../services/github";
+import {
+  clearToken,
+  getAuthStatus,
+  getGithubRepos,
+  getGithubToken,
+  getRepoPulls,
+  saveToken,
+  validateToken
+} from "../services/github";
+import {fetchJiraIssue} from "../services/jiraIssues";
 
 
 const resolver = new Resolver();
@@ -33,6 +42,17 @@ resolver.define('listRepos', async ({ payload , context }) => {
   const hasPrev = page > 1;
 
   return { repos, page, perPage, hasPrev, hasNext };
+});
+
+resolver.define('listPulls', async ({ payload, context }) => {
+  const { owner, repo, state = 'open' } = payload;
+  const token = await getGithubToken(context.accountId);
+  return getRepoPulls(token, owner, repo, state);
+});
+
+resolver.define('getIssue', async ({ payload }) => {
+  const { issueKey } = payload;
+  return fetchJiraIssue(issueKey)
 });
 
 export const handler = resolver.getDefinitions();

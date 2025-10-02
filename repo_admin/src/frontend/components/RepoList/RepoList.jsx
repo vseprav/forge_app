@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Box,
   Button,
@@ -10,7 +10,8 @@ import {
   Stack,
   Text,
 } from '@forge/react';
-import { invoke } from '@forge/bridge';
+import {invoke} from '@forge/bridge';
+import PullList from "../PullList";
 
 function fmtDate(iso) {
   try {
@@ -19,6 +20,7 @@ function fmtDate(iso) {
     return iso || 'n/a';
   }
 }
+
 function permLabel(p) {
   if (p?.admin) return 'admin';
   if (p?.push) return 'write';
@@ -44,7 +46,7 @@ export default function RepoList() {
   const loadPage = async (page) => {
     setLoadingRepos(true);
     try {
-      const res = await invoke('listRepos', { page, perPage: repoPage.perPage });
+      const res = await invoke('listRepos', {page, perPage: repoPage.perPage});
       setRepoPage(res);
     } catch (e) {
       setErrorMessage(e.message || 'Failed to load repos');
@@ -63,7 +65,7 @@ export default function RepoList() {
 
   return (
     <Box>
-      {loadingRepos && <Spinner />}
+      {loadingRepos && <Spinner/>}
       {errorMessage && (
         <SectionMessage appearance="error">
           <Text>{errorMessage}</Text>
@@ -113,6 +115,9 @@ export default function RepoList() {
                     <Text>Clone URL: {r.clone_url}</Text>
                     <Text>Created: {fmtDate(r.created_at)}</Text>
                     <Text>Updated: {fmtDate(r.updated_at)}</Text>
+
+                    <Heading level="h400">Pull Requests</Heading>
+                    <PullList owner={r.owner} repo={r.name}/>
                   </Stack>
                 </Box>
               )}
