@@ -40,3 +40,19 @@ export const getAuthStatus = async (accountId) => {
   const login = (await storage.get(loginKey(accountId)));
   return {hasToken: true, login: login ?? null};
 }
+
+export const getGithubToken = async (accountId) => {
+  return storage.getSecret(tokenKey(accountId));
+}
+
+export const getGithubRepos = async (token) => {
+  const res = await fetch('https://api.github.com/user/repos?per_page=10', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
+  if (!res.ok) throw new Error(`GitHub repos failed: ${res.status}`);
+  return res.json();
+}
