@@ -3,6 +3,12 @@ import {fetch, storage} from '@forge/api';
 const tokenKey = (accountId) => `gh-token:${accountId}`;
 const loginKey = (accountId) => `gh-login:${accountId}`;
 
+function extractJiraKey(text) {
+  if (!text) return null;
+  const match = text.match(/\b[A-Z][A-Z0-9]+-\d+\b/);
+  return match ? match[0] : null;
+}
+
 export const validateToken = async (token) => {
   const res = await fetch('https://api.github.com/user', {
     headers: {
@@ -110,14 +116,18 @@ export const getRepoPulls = async (token, owner, repo, state) => {
   }
   const data = await res.json();
 
-  return data.map(pr => ({
-    id: pr.id,
-    number: pr.number,
-    title: pr.title,
-    html_url: pr.html_url,
-    user: pr.user?.login,
-    created_at: pr.created_at,
-    updated_at: pr.updated_at,
-    branch: pr.head?.ref,
-  }));
+  return data.map((pr) => {
+    const jiraKey = extractJiraKey(pr.title) || extractJiraKey(pr.head?.ref);
+    return {
+      id: pr.id,
+      number: pr.number,
+      title: pr.title,
+      branch: pr.head?.ref,
+      html_url: pr.html_url,
+      user: pr.user?.login,
+      created_at: pr.created_at,
+      jiraKey,
+    };
+  })
+    .filter((pr) => !!pr.jiraKey);
 }
