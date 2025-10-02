@@ -25,8 +25,9 @@ app:
 permissions:
   scopes:
     - storage:app
-    - read:issue:jira
-    - write:issue:jira
+    - read:jira-work      # read issues, fields, statuses, etc.
+    - write:jira-work     # transition issues (set Done after PR merge)
+    - read:jira-user      # optional, fetch assignee details (avatars, names)
   external:
     fetch:
       backend:

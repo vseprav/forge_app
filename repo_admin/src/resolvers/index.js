@@ -50,9 +50,9 @@ resolver.define('listPulls', async ({ payload, context }) => {
   return getRepoPulls(token, owner, repo, state);
 });
 
-resolver.define('getIssue', async ({ payload }) => {
-  const { issueKey } = payload;
-  return fetchJiraIssue(issueKey)
+resolver.define('getIssues', async ({ payload }) => {
+  const { keys} = payload;
+  return fetchJiraIssue(keys)
 });
 
 export const handler = resolver.getDefinitions();
