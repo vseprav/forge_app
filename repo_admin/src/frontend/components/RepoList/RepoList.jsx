@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Box, Button, Heading, Inline, SectionMessage, Spinner, Stack, Text} from '@forge/react';
+import {Box, Button, Heading, Inline, Link, SectionMessage, Spinner, Stack, Text} from '@forge/react';
 import {invoke} from "@forge/bridge";
 
 function fmtDate(iso) {
@@ -48,6 +48,8 @@ export default function RepoList() {
   const hasPrev = !!repoPage?.hasPrev;
   const hasNext = !!repoPage?.hasNext;
 
+  console.log(repos[0]);
+
   return (
     <Box>
       {loadingRepos && <Spinner/>}
@@ -93,7 +95,7 @@ export default function RepoList() {
                 <Box><Text>{r.forks_count ?? 0}</Text></Box>
                 <Box><Text>{r.open_issues_count ?? 0}</Text></Box>
                 <Box><Text>{permLabel(r.permissions)}</Text></Box>
-                <Box><Button href={r.html_url} target="_blank">Open</Button></Box>
+                <Box><Link href={r.html_url} openNewTab>Open</Link></Box>
               </Inline>
             </Box>
           ))
