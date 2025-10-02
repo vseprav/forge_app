@@ -11,7 +11,7 @@ modules:
     - key: resolver
       handler: index.handler
     - key: prWebhookHandler
-      handler: index.prWebhookHandler
+      handler: resolvers/webhook.prWebhookHandler
 
   webtrigger:
     - key: pr-merged-webhook

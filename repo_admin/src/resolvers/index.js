@@ -10,7 +10,6 @@ import {
   validateToken
 } from "../services/github";
 import {fetchJiraIssue} from "../services/jiraIssues";
-import { prWebhookHandler } from "./webhook";
 
 const resolver = new Resolver();
 
@@ -71,4 +70,3 @@ resolver.define('mergePR', async ({ payload, context }) => {
 });
 
 export const handler = resolver.getDefinitions();
-export { prWebhookHandler };

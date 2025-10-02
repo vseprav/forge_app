@@ -1,4 +1,8 @@
-export async function prWebhookHandler(event, context) {
+import Resolver from '@forge/resolver';
+
+const resolver = new Resolver();
+
+resolver.define('prWebhookHandler', async ({ event }) => {
   try {
     const body = JSON.parse(event.body || "{}");
     const action = body.action;
@@ -12,17 +16,14 @@ export async function prWebhookHandler(event, context) {
       const branch = pr.head?.ref || "";
 
       console.log("Transitioning issue for PR", title, branch);
+      // here later call transitionIssue(issueKey, "Done")
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ok: true}),
-    };
+    return { ok: true };
   } catch (err) {
     console.error("Webhook handler error:", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({error: err.message}),
-    };
+    throw err;
   }
-}
+});
+
+export const prWebhookHandler = resolver.getDefinitions();
