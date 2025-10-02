@@ -10,6 +10,12 @@ modules:
   function:
     - key: resolver
       handler: index.handler
+    - key: prWebhookHandler
+      handler: index.prWebhookHandler
+
+  webtrigger:
+    - key: pr-merged-webhook
+      function: prWebhookHandler
 
 resources:
   - key: main

@@ -10,7 +10,7 @@ import {
   validateToken
 } from "../services/github";
 import {fetchJiraIssue} from "../services/jiraIssues";
-
+import { prWebhookHandler } from "./webhook";
 
 const resolver = new Resolver();
 
@@ -67,14 +67,8 @@ resolver.define('mergePR', async ({ payload, context }) => {
   const { owner, repo, number, issueKey } = payload;
   const token = await getGithubToken(context.accountId);
 
-  const result = await mergePullRequest(token, owner, repo, number);
-
-  // 🔹 Later: here we can update Jira issue (transition to Done)
-  // if (result.merged && issueKey) {
-  //   await transitionIssue(issueKey, "Done");
-  // }
-
-  return result;
+  return mergePullRequest(token, owner, repo, number);
 });
 
 export const handler = resolver.getDefinitions();
+export { prWebhookHandler };
