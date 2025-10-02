@@ -4,7 +4,7 @@ export async function prWebhookHandler(event, context) {
     const action = body.action;
     const pr = body.pull_request;
 
-    console.log("GitHub webhook event:", action, "pr:", pr);
+    console.log("GitHub webhook event:", action);
 
     if (action === "closed" && pr?.merged) {
       const title = pr.title || "";
