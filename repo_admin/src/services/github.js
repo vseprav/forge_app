@@ -45,14 +45,22 @@ export const getGithubToken = async (accountId) => {
   return storage.getSecret(tokenKey(accountId));
 }
 
-export const getGithubRepos = async (token, page = 1, perPage = 10) => {
-  const res = await fetch(`https://api.github.com/user/repos?per_page=${perPage}&page=${page}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28'
-    }
-  });
+export const getGithubRepos = async (
+  token,
+  page = 1,
+  perPage = 10,
+  sort = 'updated',
+  direction = 'desc',
+) => {
+  const res = await fetch(
+    `https://api.github.com/user/repos?per_page=${perPage}&page=${page}&sort=${sort}&direction=${direction}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    });
   const repos = await res.json();
   return repos.map((r) => ({
     id: r.id,
@@ -67,6 +75,9 @@ export const getGithubRepos = async (token, page = 1, perPage = 10) => {
     open_issues_count: r.open_issues_count,
     stargazers_count: r.stargazers_count,
     forks_count: r.forks_count,
+    clone_url: r.clone_url,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
     permissions: {
       admin: r.permissions?.admin,
       push: r.permissions?.push,
