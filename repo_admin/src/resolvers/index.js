@@ -22,17 +22,17 @@ resolver.define('clearToken', async ({context}) => {
   return clearToken(context.accountId);
 });
 
-resolver.define('listRepos', async ({ context }) => {
-  const token = await getGithubToken(context.accountId);
-  const repos = await getGithubRepos(token);
+resolver.define('listRepos', async ({ payload , context }) => {
+  const page = payload?.page ?? 1;
+  const perPage = payload?.perPage ?? 10;
 
-  return repos.map(r => {
-    return {
-      name: r.name,
-      full_name: r.full_name,
-      language: r.language,
-    }
-  });
+  const token = await getGithubToken(context.accountId);
+  const repos = await getGithubRepos(token, page, perPage);
+
+  const hasNext = repos.length === perPage;
+  const hasPrev = page > 1;
+
+  return { repos, page, perPage, hasPrev, hasNext };
 });
 
 export const handler = resolver.getDefinitions();

@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import ForgeReconciler, {
-  Box, Button, Stack, Text, SectionMessage, Inline, Spinner
-} from '@forge/react';
+import ForgeReconciler, { Box, Button, Stack, Text, SectionMessage, Inline, Spinner } from '@forge/react';
 import { invoke } from '@forge/bridge';
+import GitHubAuthForm from './components/GitHubAuthForm';
 import RepoList from "./components/RepoList";
-import GitHubAuthForm from "./components/GitHubAuthForm";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
   const [hasToken, setHasToken] = useState(false);
   const [login, setLogin] = useState(null);
-
   const [status, setStatus] = useState({ type: 'info', msg: 'Paste your GitHub token and click Save.' });
 
-  const [repos, setRepos] = useState([]);
+  const [repoPage, setRepoPage] = useState({ items: [], page: 1, perPage: 5, hasPrev: false, hasNext: false });
   const [loadingRepos, setLoadingRepos] = useState(false);
 
   useEffect(() => {
@@ -31,6 +28,7 @@ const App = () => {
   const onSaved = (ghLogin) => {
     setHasToken(true);
     setLogin(ghLogin);
+    loadPage(1); // auto-load page 1 after saving
   };
 
   const clear = async () => {
@@ -38,18 +36,18 @@ const App = () => {
       await invoke('clearToken');
       setHasToken(false);
       setLogin(null);
-      setRepos([]);
+      setRepoPage({ items: [], page: 1, perPage: 10, hasPrev: false, hasNext: false });
       setStatus({ type: 'info', msg: 'Token cleared. You can save a new one.' });
     } catch (e) {
       setStatus({ type: 'error', msg: e.message || 'Failed to clear token' });
     }
   };
 
-  const loadRepos = async () => {
+  const loadPage = async (page) => {
     setLoadingRepos(true);
     try {
-      const list = await invoke('listRepos', {});
-      setRepos(list);
+      const res = await invoke('listRepos', { page, perPage: repoPage.perPage });
+      setRepoPage(res);
     } catch (e) {
       setStatus({ type: 'error', msg: e.message || 'Failed to load repos' });
     } finally {
@@ -57,10 +55,11 @@ const App = () => {
     }
   };
 
+  const onPrev = () => loadPage(Math.max(1, (repoPage.page || 1) - 1));
+  const onNext = () => loadPage((repoPage.page || 1) + 1);
+
   if (loading) {
-    return (
-      <Box padding="space.200"><Inline><Spinner size="medium"/><Text>Loading…</Text></Inline></Box>
-    );
+    return <Box padding="space.200"><Inline><Spinner size="medium"/><Text>Loading…</Text></Inline></Box>;
   }
 
   return (
@@ -80,16 +79,13 @@ const App = () => {
             <Inline space="space.100" alignBlock="center">
               <Text>✅ Token is saved{login ? ` for ${login}` : ''}.</Text>
               <Button appearance="danger" onClick={clear}>Clear token</Button>
-            </Inline>
-
-            <Inline space="space.100" alignBlock="center">
-              <Button appearance="primary" onClick={loadRepos} isDisabled={loadingRepos}>
-                {loadingRepos ? 'Loading…' : 'Load Repos'}
+              <Button appearance="primary" onClick={() => loadPage(1)} isDisabled={loadingRepos}>
+                {loadingRepos ? 'Loading…' : 'Load repos'}
               </Button>
             </Inline>
 
             {loadingRepos && <Spinner />}
-            <RepoList repos={repos} />
+            <RepoList data={repoPage} loading={loadingRepos} onPrev={onPrev} onNext={onNext} />
           </Stack>
         ) : (
           <GitHubAuthForm onSaved={onSaved} onStatus={setStatus} />
