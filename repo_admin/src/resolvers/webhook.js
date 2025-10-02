@@ -1,9 +1,9 @@
-
 export async function prWebhookHandler(event, context) {
   try {
     const body = JSON.parse(event.body || "{}");
     const action = body.action;
     const pr = body.pull_request;
+    console.log('body', body);
 
     console.log("GitHub webhook event:", action);
 
@@ -16,13 +16,13 @@ export async function prWebhookHandler(event, context) {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ok: true}),
     };
   } catch (err) {
     console.error("Webhook handler error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
+      body: JSON.stringify({error: err.message}),
     };
   }
 }
