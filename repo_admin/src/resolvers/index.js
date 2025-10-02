@@ -1,10 +1,11 @@
 import Resolver from '@forge/resolver';
 import {
+  approvePullRequest,
   clearToken,
   getAuthStatus,
   getGithubRepos,
   getGithubToken,
-  getRepoPulls,
+  getRepoPulls, mergePullRequest,
   saveToken,
   validateToken
 } from "../services/github";
@@ -53,6 +54,27 @@ resolver.define('listPulls', async ({ payload, context }) => {
 resolver.define('getIssues', async ({ payload }) => {
   const { keys} = payload;
   return fetchJiraIssue(keys)
+});
+
+
+resolver.define('approvePR', async ({ payload, context }) => {
+  const { owner, repo, number } = payload;
+  const token = await getGithubToken(context.accountId);
+  return approvePullRequest(token, owner, repo, number);
+});
+
+resolver.define('mergePR', async ({ payload, context }) => {
+  const { owner, repo, number, issueKey } = payload;
+  const token = await getGithubToken(context.accountId);
+
+  const result = await mergePullRequest(token, owner, repo, number);
+
+  // 🔹 Later: here we can update Jira issue (transition to Done)
+  // if (result.merged && issueKey) {
+  //   await transitionIssue(issueKey, "Done");
+  // }
+
+  return result;
 });
 
 export const handler = resolver.getDefinitions();

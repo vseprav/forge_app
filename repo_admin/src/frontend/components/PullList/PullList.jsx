@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Inline, Link, Spinner, Stack, Text } from '@forge/react';
-import { invoke } from '@forge/bridge';
+import React, {useEffect, useState} from 'react';
+import {Box, Button, Inline, Link, Spinner, Stack, Text} from '@forge/react';
+import {invoke} from '@forge/bridge';
 
 function fmtDate(iso) {
   try {
@@ -10,7 +10,7 @@ function fmtDate(iso) {
   }
 }
 
-export default function PullList({ owner, repo }) {
+export default function PullList({owner, repo}) {
   const [pulls, setPulls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -19,7 +19,7 @@ export default function PullList({ owner, repo }) {
     const load = async () => {
       setLoading(true);
       try {
-        const prs = await invoke('listPulls', { owner, repo });
+        const prs = await invoke('listPulls', {owner, repo});
         if (!prs || prs.length === 0) {
           setPulls([]);
           return;
@@ -28,7 +28,7 @@ export default function PullList({ owner, repo }) {
         const keys = prs.map(p => p.jiraKey).filter(Boolean);
         let issueMap = {};
         if (keys.length) {
-          const issues = await invoke('getIssues', { keys });
+          const issues = await invoke('getIssues', {keys});
           issues.forEach(i => {
             issueMap[i.key] = i;
           });
@@ -49,10 +49,28 @@ export default function PullList({ owner, repo }) {
     load();
   }, [owner, repo]);
 
+  const approvePR = async (prNumber) => {
+    try {
+      await invoke('approvePull', { owner, repo, number: prNumber });
+      await load();
+    } catch (e) {
+      alert(`Failed to approve: ${e.message}`);
+    }
+  };
+
+  const mergePR = async (prNumber) => {
+    try {
+      await invoke('mergePull', { owner, repo, number: prNumber });
+      await load();
+    } catch (e) {
+      alert(`Failed to merge: ${e.message}`);
+    }
+  };
+
   if (loading) {
     return (
       <Box padding="space.100">
-        <Spinner /> <Text>Loading PRs…</Text>
+        <Spinner/> <Text>Loading PRs…</Text>
       </Box>
     );
   }
@@ -86,7 +104,6 @@ export default function PullList({ owner, repo }) {
             <Text>Branch: {pr.branch}</Text>
             <Text>Created: {fmtDate(pr.created_at)}</Text>
 
-            {/* Jira issue details if found */}
             {pr.issue ? (
               <Box padding="space.050">
                 <Text>📝 {pr.issue.key}: {pr.issue.summary}</Text>
@@ -96,6 +113,10 @@ export default function PullList({ owner, repo }) {
             ) : (
               <Text tone="subtle">No Jira issue found</Text>
             )}
+            <Inline space="space.150" alignBlock="center">
+              <Button appearance="primary" onClick={() => approvePR(pr.number)}>Approve</Button>
+              <Button appearance="primary" onClick={() => mergePR(pr.number)}>Merge</Button>
+            </Inline>
           </Stack>
         </Box>
       ))}

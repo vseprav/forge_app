@@ -131,3 +131,40 @@ export const getRepoPulls = async (token, owner, repo, state) => {
   })
     .filter((pr) => !!pr.jiraKey);
 }
+
+export const approvePullRequest = async (token, owner, repo, number) => {
+  if (!token) throw new Error('GitHub token missing');
+
+  const res = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls/${number}/reviews`,
+    {
+      method: 'POST',
+      headers: getGithubHeaders(token),
+      body: JSON.stringify({ event: 'APPROVE' }),
+    }
+  );
+
+  const body = await res.json();
+  if (!res.ok) {
+    throw new Error(`Approve failed: ${res.status} ${JSON.stringify(body)}`);
+  }
+  return body;
+};
+
+export const mergePullRequest = async (token, owner, repo, number) => {
+  if (!token) throw new Error('GitHub token missing');
+
+  const res = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls/${number}/merge`,
+    {
+      method: 'PUT',
+      headers: getGithubHeaders(token),
+    }
+  );
+
+  const body = await res.json();
+  if (!res.ok) {
+    throw new Error(`Merge failed: ${res.status} ${JSON.stringify(body)}`);
+  }
+  return body;
+};
