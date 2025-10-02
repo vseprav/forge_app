@@ -1,29 +1,29 @@
-import Resolver from '@forge/resolver';
-
-const resolver = new Resolver();
-
-resolver.define('prWebhookHandler', async ({ event }) => {
+export async function prWebhookHandler(event, context) {
   try {
     const body = JSON.parse(event.body || "{}");
     const action = body.action;
     const pr = body.pull_request;
-    console.log('body', body);
 
-    console.log("GitHub webhook event:", action);
+    console.log("GitHub webhook event:", action, "body:", body);
 
     if (action === "closed" && pr?.merged) {
       const title = pr.title || "";
       const branch = pr.head?.ref || "";
 
-      console.log("Transitioning issue for PR", title, branch);
-      // here later call transitionIssue(issueKey, "Done")
+      console.log("Transitioning issue for PR:", title, branch);
+
+      // later: call transitionIssue(issueKey, "Done")
     }
 
-    return { ok: true };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ ok: true }),
+    };
   } catch (err) {
     console.error("Webhook handler error:", err);
-    throw err;
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
   }
-});
-
-export const prWebhookHandler = resolver.getDefinitions();
+}
