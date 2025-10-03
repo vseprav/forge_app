@@ -52,6 +52,7 @@ export default function PullList({owner, repo}) {
     try {
       await invoke(action, {owner, repo, number: prNumber});
       await load();
+      alert(`Successfully ${action === 'approvePR' ? 'approved' : 'merged'} PR #${prNumber}!`);
     } catch (e) {
       alert(`Failed to ${action === 'approvePR' ? 'approve' : 'merge'}: ${e.message}`);
     }
