@@ -1,47 +1,67 @@
-import React, {useEffect, useState} from 'react';
-import ForgeReconciler, {Box, Button, Stack, Text, SectionMessage, Inline, Spinner} from '@forge/react';
-import {invoke} from '@forge/bridge';
+import React, { useEffect, useState, useCallback } from 'react';
+import ForgeReconciler, {
+  Box,
+  Button,
+  Stack,
+  Text,
+  SectionMessage,
+  Inline,
+  Spinner,
+} from '@forge/react';
+import { invoke } from '@forge/bridge';
 import GitHubAuthForm from './components/GitHubAuthForm';
-import RepoList from "./components/RepoList";
+import RepoList from './components/RepoList';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
   const [hasToken, setHasToken] = useState(false);
   const [login, setLogin] = useState(null);
-  const [status, setStatus] = useState({type: 'info', msg: 'Paste your GitHub token and click Save.'});
-
+  const [status, setStatus] = useState({
+    type: 'info',
+    msg: 'Paste your GitHub token and click Save.',
+  });
 
   useEffect(() => {
-    (async () => {
+    const fetchAuthStatus = async () => {
       try {
         const s = await invoke('getAuthStatus');
-        setHasToken(!!s.hasToken);
-        setLogin(s.login || null);
+        setHasToken(Boolean(s.hasToken));
+        setLogin(s.login ?? null);
+      } catch (err) {
+        setStatus({ type: 'error', msg: err.message || 'Failed to load auth status' });
       } finally {
         setLoading(false);
       }
-    })();
+    };
+    fetchAuthStatus();
   }, []);
 
-  const onSaved = (ghLogin) => {
+  const onSaved = useCallback((ghLogin) => {
     setHasToken(true);
     setLogin(ghLogin);
-  };
+    setStatus({ type: 'success', msg: `Token saved for ${ghLogin}.` });
+  }, []);
 
-  const clear = async () => {
+  const clear = useCallback(async () => {
     try {
       await invoke('clearToken');
       setHasToken(false);
       setLogin(null);
-      setStatus({type: 'info', msg: 'Token cleared. You can save a new one.'});
+      setStatus({ type: 'info', msg: 'Token cleared. You can save a new one.' });
     } catch (e) {
-      setStatus({type: 'error', msg: e.message || 'Failed to clear token'});
+      setStatus({ type: 'error', msg: e.message || 'Failed to clear token' });
     }
-  };
-
+  }, []);
 
   if (loading) {
-    return <Box padding="space.200"><Inline><Spinner size="medium"/><Text>Loading…</Text></Inline></Box>;
+    return (
+      <Box padding="space.200">
+        <Inline alignBlock="center">
+          <Spinner size="medium" />
+          <Text>Loading…</Text>
+        </Inline>
+      </Box>
+    );
   }
 
   return (
@@ -50,23 +70,30 @@ const App = () => {
         {hasToken ? (
           <Stack space="space.200">
             <Inline space="space.100" alignBlock="center">
-              <Text>✅ Token is saved{login ? ` for ${login}` : ''}.</Text>
-              <Button appearance="danger" onClick={clear}>Clear token</Button>
+              <Text>
+                ✅ Token is saved{login ? ` for ${login}` : ''}.
+              </Text>
+              <Button appearance="danger" onClick={clear}>
+                Clear token
+              </Button>
             </Inline>
-
-            <RepoList/>
+            <RepoList />
           </Stack>
         ) : (
           <Box>
-            <Text>GitHub PR Bridge</Text>
-
-            <SectionMessage appearance={
-              status.type === 'success' ? 'confirmation' :
-                status.type === 'error' ? 'error' : 'information'
-            }>
+            <Text weight="bold">GitHub PR Bridge</Text>
+            <SectionMessage
+              appearance={
+                status.type === 'success'
+                  ? 'confirmation'
+                  : status.type === 'error'
+                    ? 'error'
+                    : 'information'
+              }
+            >
               <Text>{status.msg}</Text>
             </SectionMessage>
-            <GitHubAuthForm onSaved={onSaved} onStatus={setStatus}/>
+            <GitHubAuthForm onSaved={onSaved} onStatus={setStatus} />
           </Box>
         )}
       </Stack>
@@ -74,4 +101,4 @@ const App = () => {
   );
 };
 
-ForgeReconciler.render(<App/>);
+ForgeReconciler.render(<App />);
