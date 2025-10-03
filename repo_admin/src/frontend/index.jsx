@@ -101,4 +101,6 @@ const App = () => {
   );
 };
 
+export default App;
+
 ForgeReconciler.render(<App />);
