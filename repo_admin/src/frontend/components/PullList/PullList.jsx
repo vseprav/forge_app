@@ -15,37 +15,38 @@ export default function PullList({owner, repo}) {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const prs = await invoke('listPulls', {owner, repo});
-        if (!prs || prs.length === 0) {
-          setPulls([]);
-          return;
-        }
-
-        const keys = prs.map(p => p.jiraKey).filter(Boolean);
-        let issueMap = {};
-        if (keys.length) {
-          const issues = await invoke('getIssues', {keys});
-          issues.forEach(i => {
-            issueMap[i.key] = i;
-          });
-        }
-
-        // merge issues into PRs
-        const enriched = prs.map(p => ({
-          ...p,
-          issue: p.jiraKey ? issueMap[p.jiraKey] : null,
-        }));
-        setPulls(enriched);
-      } catch (e) {
-        setErrorMessage(e.message || 'Failed to load pull requests');
-      } finally {
-        setLoading(false);
+  const load = async () => {
+    setLoading(true);
+    try {
+      const prs = await invoke('listPulls', {owner, repo});
+      if (!prs || prs.length === 0) {
+        setPulls([]);
+        return;
       }
-    };
+
+      const keys = prs.map(p => p.jiraKey).filter(Boolean);
+      let issueMap = {};
+      if (keys.length) {
+        const issues = await invoke('getIssues', {keys});
+        issues.forEach(i => {
+          issueMap[i.key] = i;
+        });
+      }
+
+      // merge issues into PRs
+      const enriched = prs.map(p => ({
+        ...p,
+        issue: p.jiraKey ? issueMap[p.jiraKey] : null,
+      }));
+      setPulls(enriched);
+    } catch (e) {
+      setErrorMessage(e.message || 'Failed to load pull requests');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     load();
   }, [owner, repo]);
 
@@ -60,7 +61,7 @@ export default function PullList({owner, repo}) {
 
   const mergePR = async (prNumber) => {
     try {
-      await invoke('mergePull', { owner, repo, number: prNumber });
+      await invoke('mergePR', { owner, repo, number: prNumber });
       await load();
     } catch (e) {
       alert(`Failed to merge: ${e.message}`);
