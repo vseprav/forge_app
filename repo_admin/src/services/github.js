@@ -1,13 +1,9 @@
 import {fetch, storage} from '@forge/api';
+import {extractJiraKey} from "./jiraIssues";
 
 const tokenKey = (accountId) => `gh-token:${accountId}`;
 const loginKey = (accountId) => `gh-login:${accountId}`;
 
-function extractJiraKey(text) {
-  if (!text) return null;
-  const match = text.match(/\b[A-Z][A-Z0-9]+-\d+\b/);
-  return match ? match[0] : null;
-}
 
 export const validateToken = async (token) => {
   const res = await fetch('https://api.github.com/user', {
